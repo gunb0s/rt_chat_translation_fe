@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { redirect } from "next/navigation";
+import getSession from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
@@ -9,13 +10,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const accessTokenParams = new URLSearchParams({
-    client_id: process.env.GITHUB_CLIENT_ID!,
-    client_secret: process.env.GITHUB_CLIENT_SECRET!,
-    code,
-  }).toString();
-
-  const signUpRequestUrl = `http://localhost:8080/auth/${code}`;
+  const signUpRequestUrl = `http://localhost:8080/auth?code=${code}&resource_server=GITHUB`;
   const response = await fetch(signUpRequestUrl, {
     method: "POST",
     headers: {
@@ -23,19 +18,10 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const json = await response.json();
-
-  console.log(json);
-
-  /*
-    const accessTokenURL = `https://github.com/login/oauth/access_token?${accessTokenParams}`;
-    const accessTokenResponse = await fetch(accessTokenURL, {
-        method: "POST",
-        headers: {
-            Accept: "application/json",
-        },
-    });
-    */
+  const accessToken = await response.text();
+  const session = await getSession();
+  session.accessToken = accessToken;
+  await session.save();
 
   return redirect("/home");
 }
