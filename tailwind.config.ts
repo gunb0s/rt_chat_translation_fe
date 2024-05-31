@@ -13,6 +13,15 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      colors: {
+        blue: {
+          500: '#3B82F6',        // 주요 색상
+          600: '#2563EB',        // 호버 색상
+        },
+        gray: {
+          800: '#4A5568',        // 텍스트 색상
+        },
+      },
     },
   },
   plugins: [],
