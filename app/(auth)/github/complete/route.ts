@@ -18,9 +18,16 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const accessToken = await response.text();
+  const json = (await response.json()) as { data: string };
+
+  if (!json.data) {
+    return new Response(null, {
+      status: 400,
+    });
+  }
+
   const session = await getSession();
-  session.accessToken = accessToken;
+  session.accessToken = json.data;
   await session.save();
 
   return redirect("/home");
