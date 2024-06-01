@@ -18,8 +18,6 @@ export default function Home() {
       })
     ).json();
 
-    console.log(response);
-
     redirect(`/chat/${response.data}`);
   };
 

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const json = (await response.json()) as { data: string };
+  const json = await response.json();
 
   if (!json.data) {
     return new Response(null, {
@@ -27,7 +27,9 @@ export async function GET(request: NextRequest) {
   }
 
   const session = await getSession();
-  session.accessToken = json.data;
+  session.accessToken = json.data.accessToken;
+  session.userId = json.data.userId;
+  session.username = json.data.username;
   await session.save();
 
   return redirect("/home");

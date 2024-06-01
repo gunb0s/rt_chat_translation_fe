@@ -1,8 +1,9 @@
-import { getRecentChatRoom } from "@/app/home/action";
+import { getRecentChatRoom, getRoomTitle } from "@/app/home/action";
 import Link from "next/link";
 
 async function RecentChatRoom() {
   const chatRooms = await getRecentChatRoom();
+
   return (
     <>
       {chatRooms?.map((room) => (
@@ -11,7 +12,9 @@ async function RecentChatRoom() {
           href={`/chat/${room.id}`}
           className="p-4 bg-gray-100 rounded-lg shadow-md"
         >
-          <h3 className="text-lg font-semibold text-black">{room.name}</h3>
+          <h3 className="text-lg font-semibold text-black">
+            {getRoomTitle(room)}
+          </h3>
           <p className="text-gray-600">{room.lastMessage}</p>
         </Link>
       ))}

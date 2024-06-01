@@ -1,11 +1,30 @@
 import getSession from "@/lib/session";
 
+export interface ChatRoomUser {
+  id: number;
+  username: string;
+}
+
 export interface ChatRoom {
   id: number;
-  usernames: string[];
+  users: ChatRoomUser[];
   name?: string;
-  lastMessage: string;
+  lastMessage?: string;
 }
+
+export const getRoomTitle = async (room: ChatRoom) => {
+  const session = await getSession();
+  const username = session.username;
+
+  return room.name
+    ? room.name
+    : room.users
+        .slice(0, 3)
+        .map((user) => user.username)
+        .filter((name) => name !== username)
+        .join(", ")
+        .concat("...");
+};
 
 export async function getRecentChatRoom(): Promise<ChatRoom[]> {
   const session = await getSession();

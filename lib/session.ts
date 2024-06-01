@@ -3,6 +3,8 @@ import { getIronSession } from "iron-session";
 
 interface SessionContent {
   accessToken?: string;
+  userId?: string;
+  username?: string;
 }
 
 export default function getSession() {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getMyChatRoom } from "@/app/home/action";
+import { getMyChatRoom, getRoomTitle } from "@/app/home/action";
 
 async function MyChatRoom() {
   const chatRooms = await getMyChatRoom();
@@ -21,7 +21,9 @@ async function MyChatRoom() {
             priority
           />
           <div className="ml-4">
-            <h4 className="text-md font-semibold text-black">{room.name}</h4>
+            <h4 className="text-md font-semibold text-black">
+              {getRoomTitle(room)}
+            </h4>
             <p className="text-sm text-gray-500">{room.lastMessage}</p>
           </div>
         </Link>
