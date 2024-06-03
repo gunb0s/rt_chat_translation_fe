@@ -91,7 +91,7 @@ export default function ChatMessageList({
           </div>
           {messages.map((message) => (
             <div key={message.id}>
-              {message.user.id === userId ? (
+              {message.sender.id === userId ? (
                 <div className="mb-4">
                   <p className="text-lg bg-gray-200 p-2 rounded-lg inline-block text-black"></p>
                 </div>

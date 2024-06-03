@@ -17,7 +17,18 @@ async function getRoom(chatRoomId: string): Promise<ChatRoom> {
   return json.data;
 }
 async function getMessages(chatRoomId: string): Promise<Message[]> {
-  return [];
+  const session = await getSession();
+  const response = await fetch(
+    `http://localhost:8080/chat-room/${chatRoomId}/messages`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+    },
+  );
+  const json = await response.json();
+  return json.data;
 }
 async function getUserProfile(): Promise<UserProfile> {
   const session = await getSession();
@@ -40,7 +51,7 @@ interface ChatRoom {
 
 export interface Message {
   id: number;
-  user: UserProfile;
+  sender: UserProfile;
   payload: string;
 }
 
