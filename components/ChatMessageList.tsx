@@ -2,31 +2,56 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
+import { Message } from "@/app/chat/[id]/page";
 
 interface ChatMessageListProps {
-  // initialMessages: InitialChatMessages;
-  // userId: number;
+  initialMessages: Message[];
+  userId: string;
   chatRoomId: string;
-  // username: string;
-  // avatar: string;
+  username: string;
 }
 
-export default function ChatMessageList({ chatRoomId }: ChatMessageListProps) {
+export default function ChatMessageList({
+  initialMessages,
+  userId,
+  chatRoomId,
+  username,
+}: ChatMessageListProps) {
+  const [messages, setMessages] = useState(initialMessages);
+  const [message, setMessage] = useState("");
+
+  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const {
+      target: { value },
+    } = event;
+    setMessage(value);
+  };
+
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+  };
+
   useEffect(() => {
     const socket = new SockJS("http://localhost:8080/ws");
     const stompClient = Stomp.over(socket);
-    stompClient.connect({}, () => {
-      stompClient.subscribe(`/sub/channel/${chatRoomId}`, (message) => {
-        console.log(message);
-      });
-    });
+    stompClient.connect(
+      {},
+      () => {
+        stompClient.subscribe(`/sub/channel/${chatRoomId}`, (message) => {
+          console.log(message);
+        });
+      },
+      () => {
+        console.log("Failed to connect to the server");
+      },
+    );
   }, [chatRoomId]);
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="flex flex-col items-center justify-center w-full max-w-md p-4 bg-white rounded-lg shadow-md">
+      <div className="flex flex-col items-center justify-center w-full max-w-md p-4 bg-white rounded-lg shadow-md h-2/3">
         <div className="flex items-center mb-4 w-full">
           <Image
             src="https://randomuser.me/api/portraits/women/35.jpg"
@@ -37,7 +62,7 @@ export default function ChatMessageList({ chatRoomId }: ChatMessageListProps) {
             priority
           />
           <div className="ml-4">
-            <h2 className="text-lg font-semibold text-black">Marie Wondy</h2>
+            <h2 className="text-lg font-semibold text-black">{username}</h2>
             <p className="text-sm text-green-500">Active now</p>
           </div>
           <div className="ml-auto">
@@ -64,43 +89,32 @@ export default function ChatMessageList({ chatRoomId }: ChatMessageListProps) {
           <div className="mb-4">
             <p className="text-sm text-gray-500">28 July 2023</p>
           </div>
-          <div className="mb-4">
-            <p className="text-lg bg-gray-200 p-2 rounded-lg inline-block text-black">
-              Hey mate, how's all going?
-            </p>
-          </div>
-          <div className="mb-4 flex flex-col items-end">
-            <p className="text-lg bg-blue-200 p-2 rounded-lg inline-block text-white">
-              Yeah, everything good!
-            </p>
-            <p className="text-lg bg-blue-200 p-2 rounded-lg mt-2 inline-block text-white">
-              What's your project update? Are you having any trouble?
-            </p>
-          </div>
-          <div className="mb-4">
-            <p className="text-lg bg-gray-200 p-2 rounded-lg inline-block text-black">
-              No, going all perfect! Let me show you images of the project. Look
-              at these!!!
-            </p>
-            <div className="flex mt-2 space-x-2">
-              <div className="w-20 h-20 bg-gray-300 rounded-lg"></div>
-              <div className="w-20 h-20 bg-gray-300 rounded-lg"></div>
-              <div className="w-20 h-20 bg-gray-300 rounded-lg"></div>
+          {messages.map((message) => (
+            <div key={message.id}>
+              {message.user.id === userId ? (
+                <div className="mb-4">
+                  <p className="text-lg bg-gray-200 p-2 rounded-lg inline-block text-black"></p>
+                </div>
+              ) : (
+                <div className="mb-4 flex flex-col items-end">
+                  <p className="text-lg bg-blue-200 p-2 rounded-lg inline-block text-white"></p>
+                </div>
+              )}
             </div>
-          </div>
-          <div className="mb-4 flex flex-col items-start">
-            <p className="text-lg bg-blue-200 p-2 rounded-lg inline-block text-white">
-              Wow! These are great.
-            </p>
-          </div>
+          ))}
         </div>
-        <div className="w-full mt-4">
-          <input
-            type="text"
-            placeholder="Type a message..."
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-          />
-        </div>
+        <form className="w-full mt-4" onSubmit={onSubmit}>
+          <div>
+            <input
+              required
+              type="text"
+              placeholder="Type a message..."
+              onChange={onChange}
+              value={message}
+              className="w-full text-black p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            />
+          </div>
+        </form>
       </div>
     </div>
   );
