@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import SockJS from "sockjs-client";
-import { Stomp } from "@stomp/stompjs";
+import { CompatClient, Stomp } from "@stomp/stompjs";
 import { Message } from "@/app/chat/[id]/page";
 
 interface ChatMessageListProps {
@@ -22,6 +22,7 @@ export default function ChatMessageList({
 }: ChatMessageListProps) {
   const [messages, setMessages] = useState(initialMessages);
   const [message, setMessage] = useState("");
+  const [stompClient, setStompClient] = useState<CompatClient | null>(null);
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const {
@@ -32,6 +33,14 @@ export default function ChatMessageList({
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (stompClient && message.trim()) {
+      const chatMessage = {
+        sender: username,
+        payload: message,
+      };
+      stompClient.send(`/pub/${chatRoomId}`, {}, JSON.stringify(chatMessage));
+      setMessage("");
+    }
   };
 
   useEffect(() => {
@@ -41,14 +50,22 @@ export default function ChatMessageList({
       {},
       () => {
         stompClient.subscribe(`/sub/channel/${chatRoomId}`, (message) => {
-          console.log(message);
+          const newMessage = JSON.parse(message.body);
+          setMessages((prevMessages) => [...prevMessages, newMessage]);
         });
       },
       () => {
         console.log("Failed to connect to the server");
       },
     );
+
+    setStompClient(stompClient);
+
+    return () => {
+      if (stompClient) stompClient.disconnect();
+    };
   }, [chatRoomId]);
+
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <div className="flex flex-col items-center justify-center w-full max-w-md p-4 bg-white rounded-lg shadow-md h-2/3">
@@ -93,11 +110,15 @@ export default function ChatMessageList({
             <div key={message.id}>
               {message.sender.id === userId ? (
                 <div className="mb-4">
-                  <p className="text-lg bg-gray-200 p-2 rounded-lg inline-block text-black"></p>
+                  <p className="text-lg bg-gray-200 p-2 rounded-lg inline-block text-black">
+                    {message.payload}
+                  </p>
                 </div>
               ) : (
                 <div className="mb-4 flex flex-col items-end">
-                  <p className="text-lg bg-blue-200 p-2 rounded-lg inline-block text-white"></p>
+                  <p className="text-lg bg-blue-200 p-2 rounded-lg inline-block text-white">
+                    {message.payload}
+                  </p>
                 </div>
               )}
             </div>
