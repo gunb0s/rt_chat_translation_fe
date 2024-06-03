@@ -1,12 +1,29 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
 import SockJS from "sockjs-client";
+import { Stomp } from "@stomp/stompjs";
 
-export default function ChatMessageList() {
+interface ChatMessageListProps {
+  // initialMessages: InitialChatMessages;
+  // userId: number;
+  chatRoomId: string;
+  // username: string;
+  // avatar: string;
+}
+
+export default function ChatMessageList({ chatRoomId }: ChatMessageListProps) {
   useEffect(() => {
     const socket = new SockJS("http://localhost:8080/ws");
-  }, []);
+    const stompClient = Stomp.over(socket);
+    stompClient.connect({}, () => {
+      stompClient.subscribe(`/sub/channel/${chatRoomId}`, (message) => {
+        console.log(message);
+      });
+    });
+  }, [chatRoomId]);
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <div className="flex flex-col items-center justify-center w-full max-w-md p-4 bg-white rounded-lg shadow-md">
