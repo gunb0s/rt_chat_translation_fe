@@ -1,12 +1,17 @@
 import { getRecentChatRoom, getRoomTitle } from "@/app/home/action";
 import Link from "next/link";
+import getSession from "@/lib/session";
 
 async function RecentChatRoom() {
   const chatRooms = await getRecentChatRoom();
+  const session = await getSession();
+  const otherChatRoom = chatRooms?.filter((room) =>
+    room.users.map((user) => user.username).includes(session.username!),
+  );
 
   return (
     <>
-      {chatRooms?.map((room) => (
+      {otherChatRoom?.map((room) => (
         <Link
           key={room.id}
           href={`/chat/${room.id}`}
