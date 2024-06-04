@@ -52,6 +52,7 @@ interface ChatRoom {
 export interface Message {
   id: number;
   sender: UserProfile;
+  createdAt: Date;
   payload: string;
 }
 

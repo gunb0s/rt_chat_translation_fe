@@ -35,10 +35,29 @@ export default function ChatMessageList({
     event.preventDefault();
     if (stompClient && message.trim()) {
       const chatMessage = {
-        sender: username,
+        sender: {
+          id: userId,
+          username: username,
+        },
+        createdAt: new Date(),
         payload: message,
       };
-      stompClient.send(`/pub/${chatRoomId}`, {}, JSON.stringify(chatMessage));
+      setMessages((prevMsgs) => [
+        ...prevMsgs,
+        {
+          id: Date.now(),
+          payload: message,
+          createdAt: new Date(),
+          sender: {
+            id: userId,
+            username: username,
+          },
+        },
+      ]);
+      stompClient.publish({
+        destination: `/pub/${chatRoomId}`,
+        body: JSON.stringify(chatMessage),
+      });
       setMessage("");
     }
   };
@@ -51,7 +70,7 @@ export default function ChatMessageList({
       () => {
         stompClient.subscribe(`/sub/channel/${chatRoomId}`, (message) => {
           const newMessage = JSON.parse(message.body);
-          setMessages((prevMessages) => [...prevMessages, newMessage]);
+          // setMessages((prevMessages) => [...prevMessages, newMessage]);
         });
       },
       () => {
@@ -62,6 +81,7 @@ export default function ChatMessageList({
     setStompClient(stompClient);
 
     return () => {
+      console.log("Disconnecting from the server");
       if (stompClient) stompClient.disconnect();
     };
   }, [chatRoomId]);
