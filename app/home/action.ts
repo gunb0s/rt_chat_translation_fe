@@ -1,4 +1,6 @@
 import getSession from "@/lib/session";
+import axios from "axios";
+import { Message } from "@/app/chat/[id]/page";
 
 export interface ChatRoomUser {
   id: number;
@@ -28,26 +30,30 @@ export const getRoomTitle = async (room: ChatRoom) => {
 
 export async function getRecentChatRoom(): Promise<ChatRoom[]> {
   const session = await getSession();
-  const promise = await fetch("http://localhost:8080/chat-room/recent", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${session.accessToken}`,
-    },
-  });
-  const response = await promise.json();
 
-  return response.data;
+  const axiosResponse = await axios.get<ChatRoom[]>(
+    "http://localhost:8080/chat-room/recent",
+    {
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+    },
+  );
+
+  return axiosResponse.data;
 }
 
 export async function getMyChatRoom(): Promise<ChatRoom[]> {
   const session = await getSession();
-  const promise = await fetch("http://localhost:8080/chat-room/my", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${session.accessToken}`,
-    },
-  });
-  const response = await promise.json();
 
-  return response.data;
+  const axiosResponse = await axios.get<ChatRoom[]>(
+    "http://localhost:8080/chat-room/my",
+    {
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+    },
+  );
+
+  return axiosResponse.data;
 }
