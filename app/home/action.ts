@@ -1,7 +1,7 @@
 import getSession from "@/lib/session";
 
 export interface ChatRoomUser {
-  id: number;
+  id: string;
   username: string;
 }
 
@@ -26,7 +26,7 @@ export const getRoomTitle = async (room: ChatRoom) => {
         .concat("...");
 };
 
-export async function getRecentChatRoom(): Promise<ChatRoom[]> {
+export async function getRecentChatRoom(userId?: string): Promise<ChatRoom[]> {
   const session = await getSession();
   const promise = await fetch("http://localhost:8080/chat-room/recent", {
     method: "GET",
@@ -35,6 +35,10 @@ export async function getRecentChatRoom(): Promise<ChatRoom[]> {
     },
   });
   const response = await promise.json();
+  const chatRoom = response.data;
+  chatRoom.filter((room: ChatRoom) => {
+    return room.users.some((user) => user.id === userId);
+  });
 
   return response.data;
 }
