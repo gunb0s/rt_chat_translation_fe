@@ -69,8 +69,10 @@ export default function ChatMessageList({
       {},
       () => {
         stompClient.subscribe(`/sub/channel/${chatRoomId}`, (message) => {
-          const newMessage = JSON.parse(message.body);
-          // setMessages((prevMessages) => [...prevMessages, newMessage]);
+          const newMessage: Message = JSON.parse(message.body);
+          if (newMessage.sender.id !== userId) {
+            setMessages((prevMessages) => [...prevMessages, newMessage]);
+          }
         });
       },
       () => {
