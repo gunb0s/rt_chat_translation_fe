@@ -1,26 +1,25 @@
 import ChatMessageList from "@/components/ChatMessageList";
 import { notFound } from "next/navigation";
 import getSession from "@/lib/session";
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 
 async function getRoom(chatRoomId: string): Promise<ChatRoom> {
   const session = await getSession();
 
-  const axiosResponse: AxiosResponse<ChatRoom> = await axios.get<ChatRoom>(
-    `http://localhost:8080/chat-room/${chatRoomId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${session.accessToken}`,
-      },
+  const axiosResponse = await axios.get<{
+    data: ChatRoom;
+  }>(`http://localhost:8080/chat-room/${chatRoomId}`, {
+    headers: {
+      Authorization: `Bearer ${session.accessToken}`,
     },
-  );
+  });
 
-  return axiosResponse.data;
+  return axiosResponse.data.data;
 }
 async function getMessages(chatRoomId: string): Promise<Message[]> {
   const session = await getSession();
 
-  const axiosResponse = await axios.get<Message[]>(
+  const axiosResponse = await axios.get<{ data: Message[] }>(
     `http://localhost:8080/chat-room/${chatRoomId}/messages`,
     {
       headers: {
@@ -29,11 +28,11 @@ async function getMessages(chatRoomId: string): Promise<Message[]> {
     },
   );
 
-  return axiosResponse.data;
+  return axiosResponse.data.data;
 }
 async function getUserProfile(): Promise<UserProfile> {
   const session = await getSession();
-  const axiosResponse = await axios.get<UserProfile>(
+  const axiosResponse = await axios.get<{ data: UserProfile }>(
     "http://localhost:8080/user/me",
     {
       headers: {
@@ -42,7 +41,7 @@ async function getUserProfile(): Promise<UserProfile> {
     },
   );
 
-  return axiosResponse.data;
+  return axiosResponse.data.data;
 }
 
 interface ChatRoom {

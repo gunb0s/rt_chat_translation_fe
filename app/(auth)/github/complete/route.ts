@@ -17,16 +17,18 @@ export async function GET(request: NextRequest) {
   }
 
   const signUpRequestUrl = `http://localhost:8080/auth?code=${code}&resource_server=GITHUB`;
-  const axiosResponse = await axios.post<UserAuth>(signUpRequestUrl, {
+  const {
+    data: { data },
+  } = await axios.post<{ data: UserAuth }>(signUpRequestUrl, {
     headers: {
       Accept: "application/json",
     },
   });
 
   const session = await getSession();
-  session.accessToken = axiosResponse.data.accessToken;
-  session.userId = axiosResponse.data.userId;
-  session.username = axiosResponse.data.username;
+  session.accessToken = data.accessToken;
+  session.userId = data.userId;
+  session.username = data.username;
   await session.save();
 
   return redirect("/home");
