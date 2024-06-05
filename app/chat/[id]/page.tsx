@@ -20,7 +20,7 @@ async function getMessages(chatRoomId: string): Promise<Message[]> {
   const session = await getSession();
 
   const axiosResponse = await axios.get<{ data: Message[] }>(
-    `http://localhost:8080/chat-room/${chatRoomId}/messages`,
+    `http://localhost:8080/chat-message?chatRoomId=${chatRoomId}&limit=10`,
     {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
