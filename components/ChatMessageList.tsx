@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import SockJS from "sockjs-client";
-import { CompatClient, Stomp } from "@stomp/stompjs";
+import { Client } from "@stomp/stompjs";
 import { Message } from "@/app/chat/[id]/page";
 
 interface ChatMessageListProps {
@@ -12,6 +12,7 @@ interface ChatMessageListProps {
   userId: string;
   chatRoomId: string;
   username: string;
+  accessToken: string;
 }
 
 export default function ChatMessageList({
@@ -19,10 +20,11 @@ export default function ChatMessageList({
   userId,
   chatRoomId,
   username,
+  accessToken,
 }: ChatMessageListProps) {
   const [messages, setMessages] = useState(initialMessages);
   const [message, setMessage] = useState("");
-  const [stompClient, setStompClient] = useState<CompatClient | null>(null);
+  const [stompClient, setStompClient] = useState<Client | null>(null);
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const {
@@ -63,28 +65,39 @@ export default function ChatMessageList({
   };
 
   useEffect(() => {
-    const socket = new SockJS("http://localhost:8080/ws");
-    const stompClient = Stomp.over(socket);
-    stompClient.connect(
-      {},
-      () => {
-        stompClient.subscribe(`/sub/channel/${chatRoomId}`, (message) => {
-          const newMessage: Message = JSON.parse(message.body);
-          if (newMessage.sender.id !== userId) {
-            setMessages((prevMessages) => [...prevMessages, newMessage]);
-          }
-        });
-      },
-      () => {
-        console.log("Failed to connect to the server");
-      },
-    );
+    const connectWebSocket = () => {
+      const socket = new SockJS("http://localhost:8080/ws");
+      const stompClient = new Client({
+        webSocketFactory: () => socket,
+        connectHeaders: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        onConnect: () => {
+          stompClient.subscribe(`/sub/channel/${chatRoomId}`, (message) => {
+            const newMessage: Message = JSON.parse(message.body);
+            if (newMessage.sender.id !== userId) {
+              setMessages((prevMessages) => [...prevMessages, newMessage]);
+            }
+          });
+        },
+        onStompError: (frame) => {
+          console.error(`Broker reported error: ${frame.headers["message"]}`);
+          console.error(`Additional details: ${frame.body}`);
+        },
+      });
 
+      stompClient.activate();
+
+      return stompClient;
+    };
+
+    const stompClient = connectWebSocket();
     setStompClient(stompClient);
 
     return () => {
-      console.log("Disconnecting from the server");
-      if (stompClient) stompClient.disconnect();
+      if (stompClient) {
+        stompClient.deactivate();
+      }
     };
   }, [chatRoomId]);
 

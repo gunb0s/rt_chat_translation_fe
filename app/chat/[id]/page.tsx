@@ -19,7 +19,7 @@ async function getRoom(chatRoomId: string): Promise<ChatRoom> {
 async function getMessages(chatRoomId: string): Promise<Message[]> {
   const session = await getSession();
   const response = await fetch(
-    `http://localhost:8080/chat-room/${chatRoomId}/messages`,
+    `http://localhost:8080/chat-message?chatRoomId=${chatRoomId}`,
     {
       method: "GET",
       headers: {
@@ -68,6 +68,7 @@ export default async function ChatRoom({ params }: { params: { id: string } }) {
   }
   const initialMessages = await getMessages(params.id);
   const user = await getUserProfile();
+  const session = await getSession();
   if (!user) {
     return notFound();
   }
@@ -78,6 +79,7 @@ export default async function ChatRoom({ params }: { params: { id: string } }) {
       userId={user.id!}
       username={user.username}
       initialMessages={initialMessages}
+      accessToken={session.accessToken!}
     />
   );
 }
