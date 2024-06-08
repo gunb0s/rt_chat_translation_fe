@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import { Message } from "@/app/chat/[id]/page";
@@ -25,6 +25,7 @@ export default function ChatMessageList({
   const [messages, setMessages] = useState(initialMessages);
   const [message, setMessage] = useState("");
   const [stompClient, setStompClient] = useState<Client | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const {
@@ -64,6 +65,10 @@ export default function ChatMessageList({
     }
   };
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
     const connectWebSocket = () => {
       const socket = new SockJS("http://localhost:8080/ws");
@@ -101,6 +106,10 @@ export default function ChatMessageList({
     };
   }, [chatRoomId]);
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <div className="flex flex-col items-center justify-center w-full max-w-md p-4 bg-white rounded-lg shadow-md h-2/3">
@@ -137,27 +146,31 @@ export default function ChatMessageList({
             </Link>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto mb-4 w-full">
-          <div className="mb-4">
-            <p className="text-sm text-gray-500">28 July 2023</p>
-          </div>
-          {messages.map((message) => (
-            <div key={message.id}>
-              {message.sender.id === userId ? (
-                <div className="mb-4">
-                  <p className="text-lg bg-gray-200 p-2 rounded-lg inline-block text-black">
-                    {message.payload}
-                  </p>
-                </div>
-              ) : (
-                <div className="mb-4 flex flex-col items-end">
-                  <p className="text-lg bg-blue-200 p-2 rounded-lg inline-block text-white">
-                    {message.payload}
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
+        <div
+          className="flex-1 overflow-y-auto mb-4 w-full"
+          style={{ display: "flex", flexDirection: "column-reverse" }}
+        >
+          <div ref={messagesEndRef} />
+          {messages
+            .slice()
+            .reverse()
+            .map((message) => (
+              <div key={message.id}>
+                {message.sender.id === userId ? (
+                  <div className="mb-4">
+                    <p className="text-lg bg-gray-200 p-2 rounded-lg inline-block text-black">
+                      {message.payload}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mb-4 flex flex-col items-end">
+                    <p className="text-lg bg-blue-200 p-2 rounded-lg inline-block text-white">
+                      {message.payload}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
         </div>
         <form className="w-full mt-4" onSubmit={onSubmit}>
           <div>

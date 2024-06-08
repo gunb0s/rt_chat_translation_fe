@@ -11,7 +11,7 @@ async function RecentChatRoom() {
 
   return (
     <>
-      {otherChatRoom?.map((room) => (
+      {chatRooms?.map((room) => (
         <Link
           key={room.id}
           href={`/chat/${room.id}`}
